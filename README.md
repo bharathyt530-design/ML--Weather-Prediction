@@ -11,21 +11,66 @@ To write a program to predict daily temperature , PM2.5 pollution level and Ener
 2. Anaconda – Python 3.7 Installation / Jupyter notebook
 
 ## Algorithm
-1. 
-2. 
-3. 
-4. 
+1.Collect weather dataset (temperature, humidity, wind, pressure, etc.)
+
+2.Preprocess data (handle missing values, encoding, scaling if needed)
+
+3.Split dataset into training and testing sets
+
+4.Create multiple decision trees using bootstrapped samples
 
 ## Program:
 ```
 /*
 Program to implement the Random Forest Algorithm to predict daily temperature , PM2.5 pollution level and Energy based on environmental sensor data.
-Developed by: 
-RegisterNumber:  
+Developed by:BHARATH V 
+RegisterNumber: 212225220017 
 */
+import pandas as pd
+import numpy as np
+from sklearn.ensemble import RandomForestRegressor
+import joblib
+# Load dataset
+df = pd.read_csv("weather-station-eee-block_2024_07_13.csv")
+df.columns = df.columns.str.strip()
+df['time'] = pd.to_datetime(df['time'], errors='coerce')
+print("Original rows:", len(df))
+# Only drop if target missing
+df = df.dropna(subset=['tem', 'pm2_5'])
+# Fill feature columns instead of dropping
+df['hum'] = df['hum'].fillna(df['hum'].mean())
+df['pressure'] = df['pressure'].fillna(df['pressure'].mean())
+df['wind_speed'] = df['wind_speed'].fillna(df['wind_speed'].mean())
+df['co2'] = df['co2'].fillna(df['co2'].mean())
+# Sort by time
+df = df.sort_values('time')
+
+# Create lag features
+df['Temp_Lag1'] = df['tem'].shift(1)
+df['PM_Lag1'] = df['pm2_5'].shift(1)
+# Only remove first row created by shift
+df = df.iloc[1:]
+print("Rows after preprocessing:", len(df))
+# Features
+X = df[['hum', 'pressure', 'wind_speed', 'co2',
+'Temp_Lag1', 'PM_Lag1']]
+y_temp = df['tem']
+y_pm = df['pm2_5']
+print("Training samples:", len(X))
+# Train models
+model_temp = RandomForestRegressor(n_estimators=300, random_state=42)
+model_pm = RandomForestRegressor(n_estimators=300, random_state=42)
+model_temp.fit(X, y_temp)
+model_pm.fit(X, y_pm)
+# Save models
+joblib.dump(model_temp, "temperature_model.pkl")
+joblib.dump(model_pm, "pm25_model.pkl")
+print("Models trained and saved successfully!")
+
 ```
 
 ## Output:
-
+<img width="1272" height="97" alt="image" src="https://github.com/user-attachments/assets/16667302-2de2-4dc3-aaae-19a1bcfce96f" />
 
 ## Result:
+Random Forest gives a more accurate and reliable weather prediction by combining multiple decision trees and taking the final aggregated result.
